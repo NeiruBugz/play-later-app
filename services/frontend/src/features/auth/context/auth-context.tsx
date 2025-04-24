@@ -1,4 +1,10 @@
-import { createContext, type ReactNode, useCallback, useState } from 'react'
+import {
+  createContext,
+  type ReactNode,
+  useCallback,
+  useState,
+  useRef,
+} from 'react'
 import type { AuthContextType } from '../types'
 import { getUserInfo, exchangeCodeForToken, CognitoError } from '../lib/cognito'
 import { useAuthStore } from '../lib/auth-store'
@@ -11,9 +17,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<Error | null>(null)
   const isAuthenticated = !!token
+  // Track if authentication is in progress to prevent concurrent calls
+  const authInProgressRef = useRef(false)
+  // Track if timer has been started to prevent duplicate timers
+  const timerStartedRef = useRef(false)
 
   const login = useCallback(
     async (code: string) => {
+      // Prevent concurrent authentication attempts
+      if (authInProgressRef.current) {
+        logger.warn(
+          'Authentication already in progress, skipping duplicate request',
+        )
+        return
+      }
+
+      authInProgressRef.current = true
       logger.info('Authentication process started')
       logger.debug('Processing login with auth code', {
         codeLength: code.length,
@@ -23,7 +42,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setError(null)
 
       try {
-        logger.time('auth-flow')
+        // Only start the timer if it hasn't been started
+        if (!timerStartedRef.current) {
+          logger.time('auth-flow')
+          timerStartedRef.current = true
+        }
+
         logger.group('Authentication Flow')
 
         // Log environment info to help with debugging
@@ -56,7 +80,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         })
         setError(null)
         logger.groupEnd()
-        logger.timeEnd('auth-flow')
+
+        // Only end the timer if we started it
+        if (timerStartedRef.current) {
+          logger.timeEnd('auth-flow')
+          timerStartedRef.current = false
+        }
       } catch (err) {
         logger.group('Authentication Error Details')
 
@@ -84,10 +113,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
         logger.groupEnd()
 
+        // End the timer if there was an error
+        if (timerStartedRef.current) {
+          logger.timeEnd('auth-flow')
+          timerStartedRef.current = false
+        }
+
         setError(errorToSet)
         throw errorToSet
       } finally {
         setIsLoading(false)
+        // Reset the auth in progress flag regardless of success or failure
+        authInProgressRef.current = false
         logger.debug('Authentication process completed', {
           success: error === null,
           hasError: !!error,

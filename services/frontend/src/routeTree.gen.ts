@@ -11,12 +11,19 @@
 // Import Routes
 
 import { Route as rootRoute } from './routes/__root'
+import { Route as AuthErrorImport } from './routes/auth-error'
 import { Route as AuthImport } from './routes/_auth'
 import { Route as AuthCallbackImport } from './routes/auth/callback'
 import { Route as AuthLayoutImport } from './routes/_auth/_layout'
 import { Route as AuthLayoutIndexImport } from './routes/_auth/_layout/index'
 
 // Create/Update Routes
+
+const AuthErrorRoute = AuthErrorImport.update({
+  id: '/auth-error',
+  path: '/auth-error',
+  getParentRoute: () => rootRoute,
+} as any)
 
 const AuthRoute = AuthImport.update({
   id: '/_auth',
@@ -49,6 +56,13 @@ declare module '@tanstack/react-router' {
       path: ''
       fullPath: ''
       preLoaderRoute: typeof AuthImport
+      parentRoute: typeof rootRoute
+    }
+    '/auth-error': {
+      id: '/auth-error'
+      path: '/auth-error'
+      fullPath: '/auth-error'
+      preLoaderRoute: typeof AuthErrorImport
       parentRoute: typeof rootRoute
     }
     '/_auth/_layout': {
@@ -101,12 +115,14 @@ const AuthRouteWithChildren = AuthRoute._addFileChildren(AuthRouteChildren)
 
 export interface FileRoutesByFullPath {
   '': typeof AuthLayoutRouteWithChildren
+  '/auth-error': typeof AuthErrorRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/': typeof AuthLayoutIndexRoute
 }
 
 export interface FileRoutesByTo {
   '': typeof AuthRouteWithChildren
+  '/auth-error': typeof AuthErrorRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/': typeof AuthLayoutIndexRoute
 }
@@ -114,6 +130,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRoute
   '/_auth': typeof AuthRouteWithChildren
+  '/auth-error': typeof AuthErrorRoute
   '/_auth/_layout': typeof AuthLayoutRouteWithChildren
   '/auth/callback': typeof AuthCallbackRoute
   '/_auth/_layout/': typeof AuthLayoutIndexRoute
@@ -121,12 +138,13 @@ export interface FileRoutesById {
 
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '' | '/auth/callback' | '/'
+  fullPaths: '' | '/auth-error' | '/auth/callback' | '/'
   fileRoutesByTo: FileRoutesByTo
-  to: '' | '/auth/callback' | '/'
+  to: '' | '/auth-error' | '/auth/callback' | '/'
   id:
     | '__root__'
     | '/_auth'
+    | '/auth-error'
     | '/_auth/_layout'
     | '/auth/callback'
     | '/_auth/_layout/'
@@ -135,11 +153,13 @@ export interface FileRouteTypes {
 
 export interface RootRouteChildren {
   AuthRoute: typeof AuthRouteWithChildren
+  AuthErrorRoute: typeof AuthErrorRoute
   AuthCallbackRoute: typeof AuthCallbackRoute
 }
 
 const rootRouteChildren: RootRouteChildren = {
   AuthRoute: AuthRouteWithChildren,
+  AuthErrorRoute: AuthErrorRoute,
   AuthCallbackRoute: AuthCallbackRoute,
 }
 
@@ -154,6 +174,7 @@ export const routeTree = rootRoute
       "filePath": "__root.tsx",
       "children": [
         "/_auth",
+        "/auth-error",
         "/auth/callback"
       ]
     },
@@ -162,6 +183,9 @@ export const routeTree = rootRoute
       "children": [
         "/_auth/_layout"
       ]
+    },
+    "/auth-error": {
+      "filePath": "auth-error.tsx"
     },
     "/_auth/_layout": {
       "filePath": "_auth/_layout.tsx",
