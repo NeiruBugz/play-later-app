@@ -1,33 +1,21 @@
 import { StrictMode } from 'react'
-import ReactDOM from 'react-dom/client'
+import ReactDOM, { createRoot } from 'react-dom/client'
 import { RouterProvider, createRouter } from '@tanstack/react-router'
 
 import * as TanstackQuery from './integrations/tanstack-query/root-provider'
-import type { AuthContextType } from './routes/__root'
 
-// Import the generated route tree
 import { routeTree } from './routeTree.gen'
 
 import './styles.css'
 import reportWebVitals from './reportWebVitals.ts'
 import { AuthProvider } from '@/features/auth/context/auth-context.tsx'
+import { useAuth } from '@/features/auth/hooks/use-auth.ts'
 
-// Default auth context implementation
-const defaultAuthContext: AuthContextType = {
-  isAuthenticated: false,
-  token: null,
-  userInfo: null,
-  login: async () => {},
-  isLoading: false,
-  error: null,
-}
-
-// Create a new router instance
 const router = createRouter({
   routeTree,
   context: {
     ...TanstackQuery.getContext(),
-    auth: defaultAuthContext,
+    auth: undefined!,
   },
   defaultPreload: 'intent',
   scrollRestoration: true,
@@ -42,20 +30,20 @@ declare module '@tanstack/react-router' {
   }
 }
 
-// Render the app
-const rootElement = document.getElementById('app')
-if (rootElement && !rootElement.innerHTML) {
-  const root = ReactDOM.createRoot(rootElement)
-  root.render(
-    <StrictMode>
-      <TanstackQuery.Provider>
-        <AuthProvider>
-          <RouterProvider router={router} />
-        </AuthProvider>
-      </TanstackQuery.Provider>
-    </StrictMode>,
-  )
+function InnerApp() {
+  const auth = useAuth()
+  return <RouterProvider router={router} context={{ auth }} />
 }
+
+createRoot(document.getElementById('app')!).render(
+  <StrictMode>
+    <AuthProvider>
+      <TanstackQuery.Provider>
+        <InnerApp />
+      </TanstackQuery.Provider>
+    </AuthProvider>
+  </StrictMode>,
+)
 
 // If you want to start measuring performance in your app, pass a function
 // to log results (for example: reportWebVitals(console.log))

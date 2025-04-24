@@ -15,7 +15,6 @@ import { Route as AuthImport } from './routes/_auth'
 import { Route as AuthCallbackImport } from './routes/auth/callback'
 import { Route as AuthLayoutImport } from './routes/_auth/_layout'
 import { Route as AuthLayoutIndexImport } from './routes/_auth/_layout/index'
-import { Route as AuthLayoutLibraryImport } from './routes/_auth/_layout/library'
 
 // Create/Update Routes
 
@@ -38,12 +37,6 @@ const AuthLayoutRoute = AuthLayoutImport.update({
 const AuthLayoutIndexRoute = AuthLayoutIndexImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => AuthLayoutRoute,
-} as any)
-
-const AuthLayoutLibraryRoute = AuthLayoutLibraryImport.update({
-  id: '/library',
-  path: '/library',
   getParentRoute: () => AuthLayoutRoute,
 } as any)
 
@@ -72,13 +65,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthCallbackImport
       parentRoute: typeof rootRoute
     }
-    '/_auth/_layout/library': {
-      id: '/_auth/_layout/library'
-      path: '/library'
-      fullPath: '/library'
-      preLoaderRoute: typeof AuthLayoutLibraryImport
-      parentRoute: typeof AuthLayoutImport
-    }
     '/_auth/_layout/': {
       id: '/_auth/_layout/'
       path: '/'
@@ -92,12 +78,10 @@ declare module '@tanstack/react-router' {
 // Create and export the route tree
 
 interface AuthLayoutRouteChildren {
-  AuthLayoutLibraryRoute: typeof AuthLayoutLibraryRoute
   AuthLayoutIndexRoute: typeof AuthLayoutIndexRoute
 }
 
 const AuthLayoutRouteChildren: AuthLayoutRouteChildren = {
-  AuthLayoutLibraryRoute: AuthLayoutLibraryRoute,
   AuthLayoutIndexRoute: AuthLayoutIndexRoute,
 }
 
@@ -118,14 +102,12 @@ const AuthRouteWithChildren = AuthRoute._addFileChildren(AuthRouteChildren)
 export interface FileRoutesByFullPath {
   '': typeof AuthLayoutRouteWithChildren
   '/auth/callback': typeof AuthCallbackRoute
-  '/library': typeof AuthLayoutLibraryRoute
   '/': typeof AuthLayoutIndexRoute
 }
 
 export interface FileRoutesByTo {
   '': typeof AuthRouteWithChildren
   '/auth/callback': typeof AuthCallbackRoute
-  '/library': typeof AuthLayoutLibraryRoute
   '/': typeof AuthLayoutIndexRoute
 }
 
@@ -134,21 +116,19 @@ export interface FileRoutesById {
   '/_auth': typeof AuthRouteWithChildren
   '/_auth/_layout': typeof AuthLayoutRouteWithChildren
   '/auth/callback': typeof AuthCallbackRoute
-  '/_auth/_layout/library': typeof AuthLayoutLibraryRoute
   '/_auth/_layout/': typeof AuthLayoutIndexRoute
 }
 
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '' | '/auth/callback' | '/library' | '/'
+  fullPaths: '' | '/auth/callback' | '/'
   fileRoutesByTo: FileRoutesByTo
-  to: '' | '/auth/callback' | '/library' | '/'
+  to: '' | '/auth/callback' | '/'
   id:
     | '__root__'
     | '/_auth'
     | '/_auth/_layout'
     | '/auth/callback'
-    | '/_auth/_layout/library'
     | '/_auth/_layout/'
   fileRoutesById: FileRoutesById
 }
@@ -187,16 +167,11 @@ export const routeTree = rootRoute
       "filePath": "_auth/_layout.tsx",
       "parent": "/_auth",
       "children": [
-        "/_auth/_layout/library",
         "/_auth/_layout/"
       ]
     },
     "/auth/callback": {
       "filePath": "auth/callback.tsx"
-    },
-    "/_auth/_layout/library": {
-      "filePath": "_auth/_layout/library.tsx",
-      "parent": "/_auth/_layout"
     },
     "/_auth/_layout/": {
       "filePath": "_auth/_layout/index.tsx",
