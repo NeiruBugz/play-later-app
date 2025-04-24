@@ -1,63 +1,65 @@
-/**
- * Simple logger that only works in development environment
- */
+const isDevelopment = import.meta.env.DEV === true
 
-// Check if we're in development mode
-const isDev = () => {
-  return import.meta.env.DEV === true
-}
+type LogLevel = 'debug' | 'info' | 'warn' | 'error'
+type LogFn = (message: string, ...args: unknown[]) => void
 
-type LogLevel = 'info' | 'warn' | 'error' | 'debug'
-
-// Base logger function
-const log = (level: LogLevel, ...args: any[]) => {
-  if (!isDev()) return
-
-  const timestamp = new Date().toISOString()
-  const prefix = `[${timestamp}][${level.toUpperCase()}]`
+const logger = (level: LogLevel, message: string, ...args: unknown[]) => {
+  if (!isDevelopment && level === 'debug') {
+    return
+  }
 
   switch (level) {
+    case 'debug':
+      console.debug(`[${level.toUpperCase()}]`, message, ...args)
+      break
     case 'info':
-      console.info(prefix, ...args)
+      console.info(`[${level.toUpperCase()}]`, message, ...args)
       break
     case 'warn':
-      console.warn(prefix, ...args)
+      console.warn(`[${level.toUpperCase()}]`, message, ...args)
       break
     case 'error':
-      console.error(prefix, ...args)
-      break
-    case 'debug':
-      console.debug(prefix, ...args)
+      console.error(`[${level.toUpperCase()}]`, message, ...args)
       break
   }
 }
 
-// Export specific logging functions
-export const logger = {
-  info: (...args: any[]) => log('info', ...args),
-  warn: (...args: any[]) => log('warn', ...args),
-  error: (...args: any[]) => log('error', ...args),
-  debug: (...args: any[]) => log('debug', ...args),
+const debug: LogFn = (message, ...args) => logger('debug', message, ...args)
+const info: LogFn = (message, ...args) => logger('info', message, ...args)
+const warn: LogFn = (message, ...args) => logger('warn', message, ...args)
+const error: LogFn = (message, ...args) => logger('error', message, ...args)
 
-  // Group logs for better organization
-  group: (name: string) => {
-    if (!isDev()) return
+const group = (name: string): void => {
+  if (isDevelopment) {
     console.group(name)
-  },
-  groupEnd: () => {
-    if (!isDev()) return
-    console.groupEnd()
-  },
-
-  // Timing functions
-  time: (label: string) => {
-    if (!isDev()) return
-    console.time(label)
-  },
-  timeEnd: (label: string) => {
-    if (!isDev()) return
-    console.timeEnd(label)
-  },
+  }
 }
 
-export default logger
+const groupEnd = (): void => {
+  if (isDevelopment) {
+    console.groupEnd()
+  }
+}
+
+const time = (label: string): void => {
+  if (isDevelopment) {
+    console.time(label)
+  }
+}
+
+const timeEnd = (label: string): void => {
+  if (isDevelopment) {
+    console.timeEnd(label)
+  }
+}
+
+export default {
+  debug,
+  info,
+  warn,
+  error,
+  group,
+  groupEnd,
+  time,
+  timeEnd,
+}

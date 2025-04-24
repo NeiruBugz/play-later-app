@@ -14,7 +14,6 @@ function AuthErrorPage() {
   )
 
   useEffect(() => {
-    // Get error reason from URL parameter
     const searchParams = new URLSearchParams(window.location.search)
     const reason = searchParams.get('reason')
 
@@ -31,7 +30,6 @@ function AuthErrorPage() {
 
   const handleContactSupport = () => {
     logger.info('User clicked contact support')
-    // In a real app, you might open a support chat or redirect to a contact page
     window.open('mailto:support@example.com', '_blank')
   }
 

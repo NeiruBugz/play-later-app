@@ -23,7 +23,6 @@ export function AuthCallback() {
   const { code } = search
 
   useEffect(() => {
-    // Only log this once
     if (!processedRef.current) {
       logger.debug('Auth callback search params', {
         hasCode: !!code,
@@ -36,7 +35,6 @@ export function AuthCallback() {
   }, [code, error, search])
 
   const handleCallback = useCallback(async () => {
-    // Prevent multiple executions of the callback handler
     if (processedRef.current) {
       logger.debug('Auth callback already processed, skipping')
       return
@@ -54,7 +52,6 @@ export function AuthCallback() {
       return
     }
 
-    // Set processed flag immediately to prevent concurrent executions
     processedRef.current = true
 
     logger.debug('Auth code received, proceeding with login', {
@@ -64,7 +61,6 @@ export function AuthCallback() {
     })
 
     try {
-      // Only start the timer once
       if (!timerStartedRef.current) {
         logger.time('auth-callback-process')
         timerStartedRef.current = true
@@ -75,12 +71,10 @@ export function AuthCallback() {
       logger.info('Auth login successful, redirecting to home')
       navigate({ to: decodeURIComponent('/'), replace: true })
 
-      // Only end the timer if we started it
       if (timerStartedRef.current) {
         logger.timeEnd('auth-callback-process')
       }
     } catch (error: any) {
-      // Display detailed error information to help debugging
       logger.group('Auth Callback Error')
 
       let errorMessage = 'Authentication failed'
@@ -96,7 +90,6 @@ export function AuthCallback() {
 
         errorMessage = 'Authentication Failed'
 
-        // Provide more user-friendly error details based on status code
         const status = error.status || 0
         if (status === 400) {
           errorDetails =
@@ -126,13 +119,11 @@ export function AuthCallback() {
           error?.message || 'An unexpected error occurred. Please try again.'
       }
 
-      // Log specific error properties that might be present
       if (error && typeof error === 'object') {
         try {
           const errorProps = Object.getOwnPropertyNames(error).reduce(
             (acc, prop) => {
               if (prop !== 'stack') {
-                // Stack is already logged above
                 acc[prop] = (error as any)[prop]
               }
               return acc
@@ -148,10 +139,8 @@ export function AuthCallback() {
 
       logger.groupEnd()
 
-      // Set the error state for display to the user
       setAuthError({ message: errorMessage, details: errorDetails })
 
-      // End timer if there was an error
       if (timerStartedRef.current) {
         logger.timeEnd('auth-callback-process')
       }
@@ -160,12 +149,10 @@ export function AuthCallback() {
 
   const handleRetry = () => {
     logger.info('User attempting to retry authentication')
-    // Reset the processed flag so we can try again
     processedRef.current = false
     timerStartedRef.current = false
     setIsRetrying(true)
 
-    // Retry the authentication
     handleCallback()
   }
 
@@ -176,13 +163,11 @@ export function AuthCallback() {
 
   useEffect(() => {
     logger.debug('Auth callback component mounted')
-    // Only run this effect once
     if (!processedRef.current) {
       handleCallback()
     }
   }, [handleCallback])
 
-  // If there's an error in the URL parameters
   if (error) {
     logger.error('Auth callback received error params', error)
     return (
@@ -211,7 +196,6 @@ export function AuthCallback() {
     )
   }
 
-  // If there's an error during login process
   if (authError) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen p-4">

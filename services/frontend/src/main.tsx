@@ -12,7 +12,6 @@ import reportWebVitals from './reportWebVitals.ts'
 import { AuthProvider } from '@/features/auth/context/auth-context.tsx'
 import { useAuth } from '@/features/auth/hooks/use-auth.ts'
 
-// Log application startup - will only show in development
 logger.info('Application starting...')
 
 const router = createRouter({
@@ -27,7 +26,6 @@ const router = createRouter({
   defaultPreloadStaleTime: 0,
 })
 
-// Register the router instance for type safety
 declare module '@tanstack/react-router' {
   interface Register {
     router: typeof router
@@ -50,9 +48,6 @@ createRoot(document.getElementById('app')!).render(
   </StrictMode>,
 )
 
-// If you want to start measuring performance in your app, pass a function
-// to log results (for example: reportWebVitals(console.log))
-// or send to an analytics endpoint. Learn more: https://bit.ly/CRA-vitals
 reportWebVitals()
 
 logger.info('Application rendered successfully')

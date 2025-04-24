@@ -11,7 +11,6 @@ export const Route = createFileRoute('/_auth')({
         VITE_COGNITO_SCOPES: scopes,
       } = import.meta.env
 
-      // Validate required environment variables
       if (!clientId) {
         throw new Error('Missing VITE_COGNITO_CLIENT_ID environment variable')
       }
@@ -34,7 +33,6 @@ export const Route = createFileRoute('/_auth')({
             response_type: 'code',
           })
 
-          // Add scopes if available
           if (scopes) {
             authParams.set('scope', scopes.split(',').join(' '))
           }
@@ -44,7 +42,6 @@ export const Route = createFileRoute('/_auth')({
 
           throw (window.location.href = authUrl)
         } catch (error) {
-          // This catch will handle errors during URL construction, not the redirect itself
           logger.error('Failed to redirect to authentication', {
             error: error instanceof Error ? error.message : String(error),
           })
@@ -56,7 +53,6 @@ export const Route = createFileRoute('/_auth')({
 
       logger.debug('User is authenticated, continuing to protected route')
     } catch (error) {
-      // Handle environment configuration errors
       if (
         error instanceof Error &&
         (error.message.includes('environment variable') ||
@@ -67,12 +63,10 @@ export const Route = createFileRoute('/_auth')({
           stack: error.stack,
         })
 
-        // Redirect to a custom error page instead of just throwing
         throw (window.location.href =
           '/auth-error?reason=' + encodeURIComponent(error.message))
       }
 
-      // Re-throw other errors (including the redirect)
       throw error
     }
   },

@@ -17,14 +17,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<Error | null>(null)
   const isAuthenticated = !!token
-  // Track if authentication is in progress to prevent concurrent calls
   const authInProgressRef = useRef(false)
-  // Track if timer has been started to prevent duplicate timers
   const timerStartedRef = useRef(false)
 
   const login = useCallback(
     async (code: string) => {
-      // Prevent concurrent authentication attempts
       if (authInProgressRef.current) {
         logger.warn(
           'Authentication already in progress, skipping duplicate request',
@@ -42,7 +39,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setError(null)
 
       try {
-        // Only start the timer if it hasn't been started
         if (!timerStartedRef.current) {
           logger.time('auth-flow')
           timerStartedRef.current = true
@@ -50,7 +46,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
         logger.group('Authentication Flow')
 
-        // Log environment info to help with debugging
         logger.debug('Auth environment', {
           authUrl: import.meta.env.VITE_AUTH_URL,
           clientId: import.meta.env.VITE_COGNITO_CLIENT_ID,
@@ -81,7 +76,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setError(null)
         logger.groupEnd()
 
-        // Only end the timer if we started it
         if (timerStartedRef.current) {
           logger.timeEnd('auth-flow')
           timerStartedRef.current = false
@@ -102,7 +96,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         } else {
           errorToSet = new Error('Authentication failed')
 
-          // Log the original error with as much detail as possible
           logger.error('Non-Cognito authentication error', {
             originalError: err,
             name: err instanceof Error ? err.name : typeof err,
@@ -113,7 +106,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
         logger.groupEnd()
 
-        // End the timer if there was an error
         if (timerStartedRef.current) {
           logger.timeEnd('auth-flow')
           timerStartedRef.current = false
@@ -123,7 +115,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         throw errorToSet
       } finally {
         setIsLoading(false)
-        // Reset the auth in progress flag regardless of success or failure
         authInProgressRef.current = false
         logger.debug('Authentication process completed', {
           success: error === null,
