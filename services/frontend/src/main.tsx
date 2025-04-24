@@ -3,6 +3,7 @@ import ReactDOM, { createRoot } from 'react-dom/client'
 import { RouterProvider, createRouter } from '@tanstack/react-router'
 
 import * as TanstackQuery from './integrations/tanstack-query/root-provider'
+import logger from './lib/logger'
 
 import { routeTree } from './routeTree.gen'
 
@@ -10,6 +11,9 @@ import './styles.css'
 import reportWebVitals from './reportWebVitals.ts'
 import { AuthProvider } from '@/features/auth/context/auth-context.tsx'
 import { useAuth } from '@/features/auth/hooks/use-auth.ts'
+
+// Log application startup - will only show in development
+logger.info('Application starting...')
 
 const router = createRouter({
   routeTree,
@@ -32,6 +36,7 @@ declare module '@tanstack/react-router' {
 
 function InnerApp() {
   const auth = useAuth()
+  logger.debug('Auth context:', auth)
   return <RouterProvider router={router} context={{ auth }} />
 }
 
@@ -49,3 +54,5 @@ createRoot(document.getElementById('app')!).render(
 // to log results (for example: reportWebVitals(console.log))
 // or send to an analytics endpoint. Learn more: https://bit.ly/CRA-vitals
 reportWebVitals()
+
+logger.info('Application rendered successfully')
