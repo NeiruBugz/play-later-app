@@ -1,33 +1,24 @@
 import { StrictMode } from 'react'
-import ReactDOM from 'react-dom/client'
+import ReactDOM, { createRoot } from 'react-dom/client'
 import { RouterProvider, createRouter } from '@tanstack/react-router'
 
 import * as TanstackQuery from './integrations/tanstack-query/root-provider'
-import type { AuthContextType } from './routes/__root'
+import logger from './lib/logger'
 
-// Import the generated route tree
 import { routeTree } from './routeTree.gen'
 
 import './styles.css'
 import reportWebVitals from './reportWebVitals.ts'
 import { AuthProvider } from '@/features/auth/context/auth-context.tsx'
+import { useAuth } from '@/features/auth/hooks/use-auth.ts'
 
-// Default auth context implementation
-const defaultAuthContext: AuthContextType = {
-  isAuthenticated: false,
-  token: null,
-  userInfo: null,
-  login: async () => {},
-  isLoading: false,
-  error: null,
-}
+logger.info('Application starting...')
 
-// Create a new router instance
 const router = createRouter({
   routeTree,
   context: {
     ...TanstackQuery.getContext(),
-    auth: defaultAuthContext,
+    auth: undefined!,
   },
   defaultPreload: 'intent',
   scrollRestoration: true,
@@ -35,29 +26,28 @@ const router = createRouter({
   defaultPreloadStaleTime: 0,
 })
 
-// Register the router instance for type safety
 declare module '@tanstack/react-router' {
   interface Register {
     router: typeof router
   }
 }
 
-// Render the app
-const rootElement = document.getElementById('app')
-if (rootElement && !rootElement.innerHTML) {
-  const root = ReactDOM.createRoot(rootElement)
-  root.render(
-    <StrictMode>
-      <TanstackQuery.Provider>
-        <AuthProvider>
-          <RouterProvider router={router} />
-        </AuthProvider>
-      </TanstackQuery.Provider>
-    </StrictMode>,
-  )
+function InnerApp() {
+  const auth = useAuth()
+  logger.debug('Auth context:', auth)
+  return <RouterProvider router={router} context={{ auth }} />
 }
 
-// If you want to start measuring performance in your app, pass a function
-// to log results (for example: reportWebVitals(console.log))
-// or send to an analytics endpoint. Learn more: https://bit.ly/CRA-vitals
+createRoot(document.getElementById('app')!).render(
+  <StrictMode>
+    <AuthProvider>
+      <TanstackQuery.Provider>
+        <InnerApp />
+      </TanstackQuery.Provider>
+    </AuthProvider>
+  </StrictMode>,
+)
+
 reportWebVitals()
+
+logger.info('Application rendered successfully')

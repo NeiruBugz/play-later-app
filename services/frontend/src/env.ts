@@ -1,42 +1,36 @@
-import { createEnv } from '@t3-oss/env-core'
 import { z } from 'zod'
+import logger from './lib/logger'
 
-export const env = createEnv({
-  server: {
-    SERVER_URL: z.string().url().optional(),
-  },
+const requiredString = z.string().min(1)
 
-  /**
-   * The prefix that client-side variables must have. This is enforced both at
-   * a type-level and at runtime.
-   */
-  clientPrefix: 'VITE_',
+type Environment = {
+  VITE_AUTH_DOMAIN: string
+  VITE_AUTH_CLIENT_ID: string
+  VITE_AUTH_REDIRECT_URI: string
+  VITE_API_URI: string
+}
 
-  client: {
-    VITE_APP_TITLE: z.string().min(1).optional(),
-    VITE_AUTH_URL: z.string().url(),
-    VITE_COGNITO_CLIENT_ID: z.string(),
-    VITE_COGNITO_REDIRECT_URI: z.string().url(),
-  },
-
-  /**
-   * What object holds the environment variables at runtime. This is usually
-   * `process.env` or `import.meta.env`.
-   */
-  runtimeEnv: import.meta.env,
-
-  /**
-   * By default, this library will feed the environment variables directly to
-   * the Zod validator.
-   *
-   * This means that if you have an empty string for a value that is supposed
-   * to be a number (e.g. `PORT=` in a ".env" file), Zod will incorrectly flag
-   * it as a type mismatch violation. Additionally, if you have an empty string
-   * for a value that is supposed to be a string with a default value (e.g.
-   * `DOMAIN=` in an ".env" file), the default value will never be applied.
-   *
-   * In order to solve these issues, we recommend that all new projects
-   * explicitly specify this option as true.
-   */
-  emptyStringAsUndefined: true,
+const envSchema = z.object({
+  VITE_AUTH_DOMAIN: requiredString,
+  VITE_AUTH_CLIENT_ID: requiredString,
+  VITE_AUTH_REDIRECT_URI: requiredString,
+  VITE_API_URI: requiredString,
 })
+
+const env: Environment = {
+  VITE_AUTH_DOMAIN: import.meta.env.VITE_AUTH_DOMAIN,
+  VITE_AUTH_CLIENT_ID: import.meta.env.VITE_AUTH_CLIENT_ID,
+  VITE_AUTH_REDIRECT_URI: import.meta.env.VITE_AUTH_REDIRECT_URI,
+  VITE_API_URI: import.meta.env.VITE_API_URI,
+}
+
+function validateEnv(): Environment {
+  try {
+    return envSchema.parse(env)
+  } catch (error) {
+    logger.error('Invalid environment variables:', error)
+    throw new Error('Invalid environment configuration')
+  }
+}
+
+export default validateEnv()
