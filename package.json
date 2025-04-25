@@ -1,0 +1,15 @@
+{
+  "name": "play-later-app",
+  "version": "0.0.1",
+  "description": "Play Later App",
+  "author": "badiullin.nail@gmail.com",
+  "private": false,
+  "workspaces": [
+    "services/*"
+  ],
+  "scripts": {
+    "start:backend": "pnpm --filter backend start:dev",
+    "start:frontend": "pnpm --filter frontend dev"
+  },
+  "packageManager": "pnpm@9.12.2"
+}
